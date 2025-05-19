@@ -14,6 +14,7 @@
 ![Pyside_版本界面](https://github.com/user-attachments/assets/c584869f-4962-4021-a323-f1a8136cf46b)
 ![Pyside_版本界面](https://github.com/user-attachments/assets/820fcfa8-8ac3-4191-8374-297d7e47445c)
 
+![Pyside_多线程版本](https://github.com/user-attachments/assets/a1602325-9d7e-4a40-98db-780642b6f09b)
 
 
 
