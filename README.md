@@ -2,12 +2,13 @@
 
 本软件用于通过 Modbus RTU (Serial) 协议连接开关柜内的 TEV、超声波、UHF 局部放电监测装置，读取遥测数据和图谱数据，并在图形用户界面中显示。
 
-项目包含两个主要脚本版本：
+项目包含以下主要脚本版本：
 *   `all_sensors_reader_pyside.py`: 基于 **PySide6**，读取并显示 TEV、超声波、UHF 三种传感器的数据。
+*   `all_sensors_reader_pyside_threaded.py`: 基于 **PySide6**，`all_sensors_reader_pyside.py` 的多线程版本，优化了数据读取和界面响应性能。
 *   `uhf_monitor_pyside.py`: (较新版本pyside6版本界面。) 仅读取并显示 UHF 传感器的数据。
 *  
 
-**推荐使用 `all_sensors_reader.py` 或 `all_sensors_reader_pyside.py`。**
+**推荐使用 `all_sensors_reader.py`, `all_sensors_reader_pyside.py` 或 `all_sensors_reader_pyside_threaded.py`。**
 
 ### 下面是Pyside版本代码界面：
 ![Pyside_版本界面](https://github.com/user-attachments/assets/c584869f-4962-4021-a323-f1a8136cf46b)
@@ -58,5 +59,10 @@ python all_sensors_reader.py
 **运行 PySide6 版本:**
 ```bash
 python all_sensors_reader_pyside.py
+```
+
+**运行 PySide6 多线程版本:**
+```bash
+python all_sensors_reader_pyside_threaded.py
 ```
 
