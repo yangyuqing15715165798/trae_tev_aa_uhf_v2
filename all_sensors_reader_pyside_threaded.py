@@ -150,6 +150,79 @@ class AllSensorsReader:
             print("警告：部分图谱数据读取失败或发生异常")
         return waveforms
 
+# --- Worker Threads ---
+# 工作线程基类
+class WorkerThread(QThread):
+    error_occurred = Signal(str)  # 错误信号
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._running = True # 用于控制是否应发出信号
+        
+    def run(self):
+        # 子类应实现此方法
+        pass
+
+    def stop(self):
+        self._running = False
+        # QThread.quit() 或 QThread.terminate() 可用于更强制的停止
+        # 但通常最好是让 run() 方法自然结束
+
+# 遥测数据工作线程
+class TelemetryWorker(WorkerThread):
+    data_ready = Signal(dict)
+    
+    def __init__(self, reader, parent=None):
+        super().__init__(parent)
+        self.reader = reader
+        
+    def run(self):
+        try:
+            if not self._running:
+                return # 如果在启动前就被stop了
+            if not self.reader or not self.reader.connected:
+                if self._running: self.error_occurred.emit("遥测数据读取: 设备未连接")
+                return
+
+            data = self.reader.read_telemetry_data()
+            
+            if self._running: # 再次检查，确保在耗时操作后仍然需要发送信号
+                if data is not None:
+                    self.data_ready.emit(data)
+                else:
+                    self.error_occurred.emit("读取遥测数据失败 (返回None)")
+        except Exception as e:
+            if self._running:
+                self.error_occurred.emit(f"遥测数据读取异常: {str(e)}")
+
+# 图谱数据工作线程
+class WaveformsWorker(WorkerThread):
+    data_ready = Signal(dict)
+
+    def __init__(self, reader, parent=None):
+        super().__init__(parent)
+        self.reader = reader
+
+    def run(self):
+        try:
+            if not self._running:
+                return # 如果在启动前就被stop了
+            if not self.reader or not self.reader.connected:
+                if self._running: self.error_occurred.emit("图谱数据读取: 设备未连接")
+                return
+
+            waveforms = self.reader.read_waveform_data()
+
+            if self._running: # 再次检查
+                if waveforms is not None:
+                    self.data_ready.emit(waveforms)
+                else:
+                    self.error_occurred.emit("读取图谱数据失败 (返回None)")
+        except Exception as e:
+            if self._running:
+                self.error_occurred.emit(f"图谱数据读取异常: {str(e)}")
+
+
 # --- Matplotlib Canvas Class (使用 PySide6) ---
 class MonitorCanvas(FigureCanvas):
     """通用数据显示画布"""
@@ -278,6 +351,7 @@ class AllSensorsApp(QMainWindow):
         refresh_control_layout = QHBoxLayout()
         self.auto_refresh_combo = QComboBox()
         self.auto_refresh_combo.addItems(['手动刷新', '1秒', '2秒', '5秒', '10秒'])
+        self.auto_refresh_combo.setCurrentIndex(3) # 默认设置为5秒
         self.auto_refresh_combo.currentIndexChanged.connect(self.set_auto_refresh) # PySide6 信号连接
         self.manual_refresh_button = QPushButton("手动刷新数据")
         self.manual_refresh_button.clicked.connect(self.trigger_data_update) # PySide6 信号连接, 改为 trigger_data_update
@@ -672,6 +746,79 @@ class AllSensorsReader:
             print("警告：部分图谱数据读取失败或发生异常")
         return waveforms
 
+# --- Worker Threads ---
+# 工作线程基类
+class WorkerThread(QThread):
+    error_occurred = Signal(str)  # 错误信号
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._running = True # 用于控制是否应发出信号
+        
+    def run(self):
+        # 子类应实现此方法
+        pass
+
+    def stop(self):
+        self._running = False
+        # QThread.quit() 或 QThread.terminate() 可用于更强制的停止
+        # 但通常最好是让 run() 方法自然结束
+
+# 遥测数据工作线程
+class TelemetryWorker(WorkerThread):
+    data_ready = Signal(dict)
+    
+    def __init__(self, reader, parent=None):
+        super().__init__(parent)
+        self.reader = reader
+        
+    def run(self):
+        try:
+            if not self._running:
+                return # 如果在启动前就被stop了
+            if not self.reader or not self.reader.connected:
+                if self._running: self.error_occurred.emit("遥测数据读取: 设备未连接")
+                return
+
+            data = self.reader.read_telemetry_data()
+            
+            if self._running: # 再次检查，确保在耗时操作后仍然需要发送信号
+                if data is not None:
+                    self.data_ready.emit(data)
+                else:
+                    self.error_occurred.emit("读取遥测数据失败 (返回None)")
+        except Exception as e:
+            if self._running:
+                self.error_occurred.emit(f"遥测数据读取异常: {str(e)}")
+
+# 图谱数据工作线程
+class WaveformsWorker(WorkerThread):
+    data_ready = Signal(dict)
+
+    def __init__(self, reader, parent=None):
+        super().__init__(parent)
+        self.reader = reader
+
+    def run(self):
+        try:
+            if not self._running:
+                return # 如果在启动前就被stop了
+            if not self.reader or not self.reader.connected:
+                if self._running: self.error_occurred.emit("图谱数据读取: 设备未连接")
+                return
+
+            waveforms = self.reader.read_waveform_data()
+
+            if self._running: # 再次检查
+                if waveforms is not None:
+                    self.data_ready.emit(waveforms)
+                else:
+                    self.error_occurred.emit("读取图谱数据失败 (返回None)")
+        except Exception as e:
+            if self._running:
+                self.error_occurred.emit(f"图谱数据读取异常: {str(e)}")
+
+
 # --- Matplotlib Canvas Class (使用 PySide6) ---
 class MonitorCanvas(FigureCanvas):
     """通用数据显示画布"""
@@ -800,6 +947,7 @@ class AllSensorsApp(QMainWindow):
         refresh_control_layout = QHBoxLayout()
         self.auto_refresh_combo = QComboBox()
         self.auto_refresh_combo.addItems(['手动刷新', '1秒', '2秒', '5秒', '10秒'])
+        self.auto_refresh_combo.setCurrentIndex(3) # 默认设置为5秒
         self.auto_refresh_combo.currentIndexChanged.connect(self.set_auto_refresh) # PySide6 信号连接
         self.manual_refresh_button = QPushButton("手动刷新数据")
         self.manual_refresh_button.clicked.connect(self.trigger_data_update) # PySide6 信号连接, 改为 trigger_data_update
